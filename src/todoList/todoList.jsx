@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
 import "./todoList.css";
 
@@ -7,6 +7,7 @@ export default function TodoList() {
   const [todoList, setTodoList] = useState([]);
   const [editID, setEditID] = useState("");
   const [editInput, setEditInput] = useState("");
+  const inputRef = useRef(null);
   const pendingTodo = useMemo(
     () => todoList.filter((todoItem) => !todoItem.completed),
     [todoList]
@@ -21,6 +22,11 @@ export default function TodoList() {
   }, []);
 
   const handleSubmit = () => {
+    if (inputValue.trim() === "") {
+        alert('Task cannot be empty');
+        inputRef.current.focus();
+        return;
+    }
     const newTodo = { title: inputValue, completed: false, id: uuidv4() };
     const newTodoList = [...todoList, newTodo];
     setTodoList(newTodoList);
@@ -30,16 +36,16 @@ export default function TodoList() {
   const handleDelete = useCallback((id) => {
     const filteredTodoList = todoList.filter((todoItem) => todoItem.id !== id);
     setTodoList(filteredTodoList);
-  }, []);
+  }, [todoList]);
 
   const handleSetEdit = ({ title, id }) => {
     setEditID(id);
     setEditInput(title);
   };
 
-  const handleEditInput = (e) => {
+  const handleEditInput = useCallback((e) => {
     setEditInput(e.target.value);
-  };
+  }, []);
 
   const handleSave = (id) => {
     const editedList = todoList.map((todoItem) =>
@@ -70,7 +76,12 @@ export default function TodoList() {
     <>
       <h2>To Do List</h2>
       <div>
-        <input type="text" value={inputValue} onChange={handleInput} />
+        <input
+          type="text"
+          ref={inputRef}
+          value={inputValue}
+          onChange={handleInput}
+        />
         <button onClick={handleSubmit}>Submit</button>
       </div>
       <div className="todo-list-section">
@@ -99,7 +110,9 @@ export default function TodoList() {
                     <button onClick={() => handleSetEdit(todoItem)}>
                       Edit
                     </button>
-                    <button onClick={(() => handleSwitchComplete(todoItem.id))}>{'=>'}</button>
+                    <button onClick={() => handleSwitchComplete(todoItem.id)}>
+                      {"=>"}
+                    </button>
                   </>
                 )}
               </li>
@@ -124,7 +137,9 @@ export default function TodoList() {
                   </>
                 ) : (
                   <>
-                    <button onClick={() => handleSwitchComplete(todoItem.id)}>{'<='}</button>
+                    <button onClick={() => handleSwitchComplete(todoItem.id)}>
+                      {"<="}
+                    </button>
                     {todoItem.title}
                     <button onClick={() => handleDelete(todoItem.id)}>
                       Delete
