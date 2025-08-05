@@ -3,6 +3,7 @@ import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
 import TodoList from "./todoList/todoList";
+import { TodoProvider } from "./todoList/todoContext";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -30,7 +31,9 @@ function App() {
         Click on the Vite and React logos to learn more
       </p> */}
 
-      <TodoList />
+      <TodoProvider>
+        <TodoList />
+      </TodoProvider>
     </>
   );
 }

@@ -1,20 +1,23 @@
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback, useRef, useContext } from "react";
 import { v4 as uuidv4 } from "uuid";
 import "./todoList.css";
+import { TodoContext } from "./todoContext";
 
 export default function TodoList() {
+  const { state, dispatch } = useContext(TodoContext);
+  //console.log("TodoList count:", state.todoList);
   const [inputValue, setInputValue] = useState("");
-  const [todoList, setTodoList] = useState([]);
+  //const [todoList, setTodoList] = useState([]);
   const [editID, setEditID] = useState("");
   const [editInput, setEditInput] = useState("");
   const inputRef = useRef(null);
   const pendingTodo = useMemo(
-    () => todoList.filter((todoItem) => !todoItem.completed),
-    [todoList]
+    () => state.todoList.filter((todoItem) => !todoItem.completed),
+    [state.todoList]
   );
   const completTodo = useMemo(
-    () => todoList.filter((todoItem) => todoItem.completed),
-    [todoList]
+    () => state.todoList.filter((todoItem) => todoItem.completed),
+    [state.todoList]
   );
 
   const handleInput = useCallback((e) => {
@@ -23,20 +26,26 @@ export default function TodoList() {
 
   const handleSubmit = () => {
     if (inputValue.trim() === "") {
-        alert('Task cannot be empty');
-        inputRef.current.focus();
-        return;
+      alert("Task cannot be empty");
+      inputRef.current.focus();
+      return;
     }
     const newTodo = { title: inputValue, completed: false, id: uuidv4() };
-    const newTodoList = [...todoList, newTodo];
-    setTodoList(newTodoList);
+    dispatch({ type: "addTodo", payload: newTodo });
+    //const newTodoList = [...todoList, newTodo];
+    //setTodoList(newTodoList);
     setInputValue("");
   };
 
-  const handleDelete = useCallback((id) => {
-    const filteredTodoList = todoList.filter((todoItem) => todoItem.id !== id);
-    setTodoList(filteredTodoList);
-  }, [todoList]);
+  //   const handleDelete = useCallback(
+  //     (id) => {
+  //       const filteredTodoList = todoList.filter(
+  //         (todoItem) => todoItem.id !== id
+  //       );
+  //       setTodoList(filteredTodoList);
+  //     },
+  //     [todoList]
+  //   );
 
   const handleSetEdit = ({ title, id }) => {
     setEditID(id);
@@ -48,29 +57,30 @@ export default function TodoList() {
   }, []);
 
   const handleSave = (id) => {
-    const editedList = todoList.map((todoItem) =>
-      todoItem.id === id
-        ? {
-            ...todoItem, // copy whatever in the object
-            title: editInput, // change title to the edited input value
-          }
-        : todoItem
-    );
-    setTodoList(editedList);
+    // const editedList = todoList.map((todoItem) =>
+    //   todoItem.id === id
+    //     ? {
+    //         ...todoItem, // copy whatever in the object
+    //         title: editInput, // change title to the edited input value
+    //       }
+    //     : todoItem
+    // );
+    // setTodoList(editedList);
+    dispatch({ type: "saveEdit", payload: { id, editInput } });
     setEditID("");
   };
 
-  const handleSwitchComplete = (id) => {
-    const updateList = todoList.map((todoItem) =>
-      todoItem.id === id
-        ? {
-            ...todoItem,
-            completed: !todoItem.completed,
-          }
-        : todoItem
-    );
-    setTodoList(updateList);
-  };
+  //   const handleSwitchComplete = (id) => {
+  //     const updateList = todoList.map((todoItem) =>
+  //       todoItem.id === id
+  //         ? {
+  //             ...todoItem,
+  //             completed: !todoItem.completed,
+  //           }
+  //         : todoItem
+  //     );
+  //     setTodoList(updateList);
+  //   };
 
   return (
     <>
@@ -104,13 +114,24 @@ export default function TodoList() {
                 ) : (
                   <>
                     {todoItem.title}
-                    <button onClick={() => handleDelete(todoItem.id)}>
+                    <button
+                      onClick={() =>
+                        dispatch({ type: "deleteTodo", payload: todoItem.id })
+                      }
+                    >
                       Delete
                     </button>
                     <button onClick={() => handleSetEdit(todoItem)}>
                       Edit
                     </button>
-                    <button onClick={() => handleSwitchComplete(todoItem.id)}>
+                    <button
+                      onClick={() =>
+                        dispatch({
+                          type: "switchComplete",
+                          payload: todoItem.id,
+                        })
+                      }
+                    >
                       {"=>"}
                     </button>
                   </>
@@ -137,11 +158,22 @@ export default function TodoList() {
                   </>
                 ) : (
                   <>
-                    <button onClick={() => handleSwitchComplete(todoItem.id)}>
+                    <button
+                      onClick={() =>
+                        dispatch({
+                          type: "switchComplete",
+                          payload: todoItem.id,
+                        })
+                      }
+                    >
                       {"<="}
                     </button>
                     {todoItem.title}
-                    <button onClick={() => handleDelete(todoItem.id)}>
+                    <button
+                      onClick={() =>
+                        dispatch({ type: "deleteTodo", payload: todoItem.id })
+                      }
+                    >
                       Delete
                     </button>
                     <button onClick={() => handleSetEdit(todoItem)}>
